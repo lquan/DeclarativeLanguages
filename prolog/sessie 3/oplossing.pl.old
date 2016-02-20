@@ -1,0 +1,50 @@
+% Li Quan
+% 1e master computerwetenschappen optie artificiele intelligentie
+
+%%% Prolog 3
+%% the graph
+edge(a,b).
+edge(b,d).
+edge(b,c).
+edge(c,d).
+edge(c,a).
+edge(d,e).
+edge(e,a).
+%%
+
+path(A,B,_,1) :- edge(A,B).
+path(A,B,P,L) :-
+	edge(A,C),
+	\+ member(C,P),
+	path(C,B,[C|P], L1), 
+	L is L1 + 1,
+	L > 1.
+
+% find all the nodes
+find_nodes(L) :- 
+	findall(A,path(A,_,_,_),R),
+ 	sort(R,L). 
+	
+% find the other nodes than A
+find_other(A,L) :- 
+	find_nodes(Nodes),
+	delete(Nodes,A,L).
+
+% find all path lengths from A to B 
+% ( max 1 visit per node, 
+%  e.g. path_length(e,a,R), R= [1,5,4,6] )
+path_length(A,B,R) :-
+	findall(L,( path(A,B,[],L) ),R).
+
+% the shortest path length from A to B
+shortest_path_length(A,B,L) :-
+	path_length(A,B,R),
+	min_list(R,L).
+
+% closeness
+closeness(Node,Value) :- 
+	find_other(Node,Other),
+	findall(L, (member(X,Other),shortest_path_length(Node,X,L)), R),
+	sumlist(R,S),
+	length(Other,Nm), %Nm > 0 (implicit assumption) 
+	Value is S / Nm.
